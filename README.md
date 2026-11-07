@@ -1,6 +1,6 @@
 # HueConnector
 
-Control a Philips Hue **Bluetooth** bulb with Siri, without a Hue Bridge. A Jetson (or any Linux board with BlueZ) holds a Bluetooth connection to the bulb and presents it to Apple Home as a HomeKit light.
+Control a Philips Hue **Bluetooth** bulb with Siri, without a Hue Bridge. A Jetson, Raspberry Pi or any other machine that can run Python and has Bluetooth LE holds a Bluetooth connection to the bulb and presents it to Apple Home as a HomeKit light.
 
 ```
 Siri / Home app  →  HomeKit (HAP over Wi-Fi)  →  Jetson  →  BLE  →  Hue bulb
@@ -14,7 +14,19 @@ What it does:
 - Reads the bulb's real state (by notification, and every 30 s) so the Home app stays correct when the light is changed from the Hue app or a switch.
 - Provides an optional HTTP API for iPhone Shortcuts, using the same Bluetooth connection.
 
-## 1. Install (on the Jetson)
+## Where it runs
+
+It's plain Python (3.8+), so it runs on more than a Jetson: any always-on machine with Bluetooth LE and a Wi-Fi or Ethernet connection to your home network, within Bluetooth range of the bulb.
+
+| Platform | Status |
+|---|---|
+| **Linux with BlueZ**: Jetson, Raspberry Pi, Ubuntu/Debian PC, other SBCs | Fully supported. Tested on a Jetson Orin Nano (JetPack 7 / Ubuntu 24.04, Python 3.12) |
+| **macOS** | Control and HomeKit should work, but it's untested. `hueconnector pair` won't work, so pair the bulb when macOS prompts on first connection |
+| **Windows** | Control and HomeKit should work, but it's untested. Pair the bulb in Windows Bluetooth settings instead of with `hueconnector pair` |
+
+The parts that need Linux are the `pair` command (it uses BlueZ's D-Bus pairing agent), `scripts/install.sh` (apt) and the systemd service. On other systems, install with `pip install .` and start it with `hueconnector run` however you like (launchd, Task Scheduler, a terminal).
+
+## 1. Install (on the Jetson or any Linux box)
 
 ```bash
 git clone <this repo> ~/HueConnector   # or copy the folder over
