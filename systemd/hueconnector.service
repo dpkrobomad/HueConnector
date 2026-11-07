@@ -1,0 +1,16 @@
+[Unit]
+Description=HueConnector - Hue Bluetooth bulb to HomeKit bridge
+After=bluetooth.target network-online.target
+Wants=bluetooth.target network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+WorkingDirectory=__DIR__
+ExecStart=__DIR__/.venv/bin/hueconnector run --config __DIR__/config.json
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hueconnector"
+version = "0.1.0"
+description = "Hue Bluetooth bulb -> HomeKit / HTTP bridge for Jetson and other Linux boards"
+requires-python = ">=3.8"
+dependencies = [
+    "bleak>=0.21",
+    "HAP-python[QRCode]>=4.9",
+    "aiohttp>=3.8",
+]
+
+[project.scripts]
+hueconnector = "hueconnector.__main__:main"
+
+[tool.setuptools]
+packages = ["hueconnector"]

@@ -1,0 +1,27 @@
+{
+  "name": "Bedroom Light",
+  "address": "AA:BB:CC:DD:EE:FF",
+  "color_temperature": true,
+  "color": false,
+
+  "ble": {
+    "connect_timeout": 20,
+    "poll_interval": 30,
+    "command_ttl": 10,
+    "max_backoff": 60
+  },
+
+  "homekit": {
+    "enabled": true,
+    "port": 51826,
+    "state_file": "hueconnector.state",
+    "pincode": null
+  },
+
+  "http": {
+    "enabled": false,
+    "host": "0.0.0.0",
+    "port": 8080,
+    "token": null
+  }
+}
