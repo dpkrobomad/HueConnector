@@ -5,9 +5,12 @@ Endpoints (GET or POST):
   /on  /off  /toggle
   /brightness/{0-100}     0 turns the light off
   /temperature/{kelvin}   2200-6500
+  /color/{hex}            e.g. /color/ff0000 (needs "color": true in config; colour support is experimental)
+  /flash/{times}          blink the light N times (1-10), ending on
 """
 from __future__ import annotations
 
+import asyncio
 import hmac
 import logging
 from typing import Optional
@@ -15,6 +18,7 @@ from typing import Optional
 from aiohttp import web
 
 from .bulb import MAX_MIREDS, MIN_MIREDS, HueBulb
+from .colour import hex_to_xy
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +30,7 @@ class HttpApi:
         self.port = port
         self.token = token
         self._runner: Optional[web.AppRunner] = None
+        self._flash_task: Optional[asyncio.Task] = None
 
     async def start(self) -> None:
         app = web.Application(middlewares=[self._auth])
@@ -36,6 +41,8 @@ class HttpApi:
             ("/toggle", self.toggle),
             ("/brightness/{pct}", self.brightness),
             ("/temperature/{kelvin}", self.temperature),
+            ("/color/{hex}", self.color),
+            ("/flash/{times}", self.flash),
         ):
             app.router.add_route("GET", path, handler)
             app.router.add_route("POST", path, handler)
@@ -98,6 +105,30 @@ class HttpApi:
         kelvin = _number(request.match_info["kelvin"], 1_000_000 // MAX_MIREDS, 1_000_000 // MIN_MIREDS)
         self.bulb.set(mireds=round(1_000_000 / kelvin))
         return self._reply(kelvin=kelvin)
+
+    async def color(self, request: web.Request) -> web.Response:
+        if not self.bulb.color:
+            raise web.HTTPBadRequest(text='colour disabled in config (set "color": true)')
+        try:
+            xy = hex_to_xy(request.match_info["hex"])
+        except ValueError as exc:
+            raise web.HTTPBadRequest(text=str(exc))
+        self.bulb.set(on=True, xy=xy)
+        return self._reply(on=True, xy=[round(xy[0], 4), round(xy[1], 4)])
+
+    async def flash(self, request: web.Request) -> web.Response:
+        times = _number(request.match_info["times"], 1, 10)
+        if self._flash_task and not self._flash_task.done():
+            self._flash_task.cancel()
+        self._flash_task = asyncio.ensure_future(self._blink(times))
+        return self._reply(flash=times)
+
+    async def _blink(self, times: int, period: float = 0.5) -> None:
+        for _ in range(times):
+            self.bulb.set(on=False)
+            await asyncio.sleep(period / 2)
+            self.bulb.set(on=True)
+            await asyncio.sleep(period / 2)
 
 
 def _number(raw: str, lo: int, hi: int) -> int:
