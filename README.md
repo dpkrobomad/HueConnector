@@ -97,6 +97,8 @@ Set `"http": {"enabled": true, "token": "some-long-secret"}` and restart the ser
 | `/on`, `/off`, `/toggle` | Power |
 | `/brightness/40` | 40 %. A value of 0 turns the light off |
 | `/temperature/2700` | Colour temperature in kelvin (2200–6500) |
+| `/color/ff0000` | Colour as hex RGB. Needs `"color": true` (experimental) |
+| `/flash/3` | Blink 3 times (1–10), ending on |
 
 In Shortcuts, add **Get Contents of URL** with `http://<jetson-ip>:8080/off` and a header `Authorization: Bearer some-long-secret`. Name the shortcut "Lights off" and Siri will run it when you say that phrase.
 
